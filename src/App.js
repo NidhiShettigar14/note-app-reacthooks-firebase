@@ -149,7 +149,7 @@ function App() {
   return (
     <div className="App">
       <Header>
-        <Title>Note<span>App</span>.</Title>
+        <Title>Cloud<span>Notes</span>.</Title>
         
         <SearchContainer>
           <FiSearch />
