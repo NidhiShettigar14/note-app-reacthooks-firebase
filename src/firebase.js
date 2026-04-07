@@ -5,14 +5,14 @@ import "firebase/auth";
 import "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: `${process.env.APIKEY}`,
-  authDomain: `${process.env.AUTH_DOMAIN}`,
-  databaseURL: `${process.env.DATABASE_URL}`,
-  projectId: `${process.env.PROJECTID}`,
-  storageBucket: `${process.env.STORAGE_BUCKET}`,
-  messagingSenderId: `${process.env.MESSAGE_SENDER_ID}`,
-  appId: `${process.env.APP_ID}`,
-  measurementId: `${process.env.MEASUREMENT_ID}`
+  apiKey: "AIzaSyBdViVB8A7cQF_hol-IBKr9zP8aQlt4ZLw",
+  authDomain: "notes-app-c0895.firebaseapp.com",
+  databaseURL: "https://notes-app-c0895-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "notes-app-c0895",
+  storageBucket: "notes-app-c0895.firebasestorage.app",
+  messagingSenderId: "895402274242",
+  appId: "1:895402274242:web:b2b835c0a4a6ffa5967a5b",
+  measurementId: "G-1NGN3GVJ73"
 };
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
