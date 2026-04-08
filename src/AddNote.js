@@ -2,16 +2,19 @@ import React, { useState } from "react";
 import styled from "styled-components";
 import firebase from "./firebase";
 import { FiPlus, FiImage } from "react-icons/fi";
+import { autoCategorizeNote } from "./utils/ai";
 
 const AddNoteDiv = styled.div`
   display: flex;
   flex-direction: column;
   background: var(--surface-color);
-  border-radius: 12px;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 16px;
   border: 1px solid var(--border-color);
   padding: 24px;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.2s ease-in-out;
+  transition: box-shadow 0.3s ease-in-out;
 
   &:hover {
     box-shadow: var(--shadow-md);
@@ -22,8 +25,9 @@ const FormTitle = styled.h3`
   margin-top: 0;
   margin-bottom: 20px;
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
+  letter-spacing: -0.3px;
 `;
 
 const InputGroup = styled.div`
@@ -43,10 +47,10 @@ const Label = styled.label`
 
 const InputTitle = styled.input`
   padding: 12px;
-  border: 1px solid var(--surface-color-light);
-  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  background: var(--surface-color-light);
   color: var(--text-primary);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   outline: none;
   transition: all 0.2s;
@@ -54,15 +58,16 @@ const InputTitle = styled.input`
   &:focus {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 2px var(--focus-ring);
+    background: rgba(255, 255, 255, 0.8);
   }
 `;
 
 const BodyTextArea = styled.textarea`
   padding: 12px;
-  border: 1px solid var(--surface-color-light);
-  background: var(--bg-color);
+  border: 1px solid var(--border-color);
+  background: var(--surface-color-light);
   color: var(--text-primary);
-  border-radius: 8px;
+  border-radius: 12px;
   font-size: 14px;
   min-height: 120px;
   resize: vertical;
@@ -73,6 +78,7 @@ const BodyTextArea = styled.textarea`
   &:focus {
     border-color: var(--accent-color);
     box-shadow: 0 0 0 2px var(--focus-ring);
+    background: rgba(255, 255, 255, 0.8);
   }
 `;
 
@@ -81,8 +87,8 @@ const FileInputLabel = styled.label`
   align-items: center;
   gap: 8px;
   padding: 12px;
-  border: 1px dashed var(--surface-color-light);
-  border-radius: 8px;
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
   cursor: pointer;
   font-size: 14px;
   color: var(--text-secondary);
@@ -91,27 +97,11 @@ const FileInputLabel = styled.label`
   &:hover {
     border-color: var(--accent-color);
     color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.2);
   }
 
   input {
     display: none;
-  }
-`;
-
-const Select = styled.select`
-  padding: 12px;
-  border: 1px solid var(--surface-color-light);
-  background: var(--bg-color);
-  color: var(--text-primary);
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  transition: all 0.2s;
-  cursor: pointer;
-
-  &:focus {
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--focus-ring);
   }
 `;
 
@@ -120,40 +110,36 @@ const Button = styled.button`
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: var(--accent-color);
+  background: ${props => props.isProcessing ? 'var(--accent-hover)' : 'var(--accent-color)'};
   color: white;
   font-size: 14px;
   font-weight: 600;
-  padding: 12px;
+  padding: 14px;
   border: none;
   cursor: pointer;
-  border-radius: 8px;
-  transition: background 0.2s;
+  border-radius: 12px;
+  transition: all 0.2s;
   margin-top: 8px;
+  box-shadow: 0 4px 6px rgba(99, 102, 241, 0.2);
 
   &:hover {
     background: var(--accent-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(99, 102, 241, 0.3);
   }
   
   &:disabled {
-    opacity: 0.5;
+    opacity: 0.6;
     cursor: not-allowed;
+    transform: none;
   }
 `;
-
-const FOLDERS = ["Personal", "Work", "Study"];
 
 const AddNote = ({ defaultFolder }) => {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [folder, setFolder] = useState(defaultFolder || "Personal");
   const [imageFile, setImageFile] = useState(null);
-
-  React.useEffect(() => {
-    if (defaultFolder) {
-      setFolder(defaultFolder);
-    }
-  }, [defaultFolder]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const compressImageToBase64 = (file) => {
     return new Promise((resolve, reject) => {
@@ -211,44 +197,40 @@ const AddNote = ({ defaultFolder }) => {
     }
   };
 
-  const addNote = () => {
+  const addNote = async () => {
     if (!title.trim() || !body.trim()) return;
     
-    const noteToSave = {
-      title,
-      body,
-      folder,
-      imageUrl: imageFile, 
-      createdAt: new Date().toISOString()
-    };
+    setIsProcessing(true);
+    try {
+      // Magically auto-categorize note with AI
+      const aiResult = await autoCategorizeNote(title, body);
+      
+      const noteToSave = {
+        title,
+        body,
+        folder: aiResult.category,
+        tags: aiResult.tags,
+        imageUrl: imageFile, 
+        createdAt: new Date().toISOString()
+      };
 
-    setTitle("");
-    setBody("");
-    setImageFile(null);
-
-    firebase
-      .firestore()
-      .collection("notes")
-      .add(noteToSave)
-      .catch((error) => {
-        console.error("Error adding note", error);
-        alert("Failed to add note: " + error.message);
-      });
+      await firebase.firestore().collection("notes").add(noteToSave);
+      
+      setTitle("");
+      setBody("");
+      setImageFile(null);
+    } catch (error) {
+      console.error("Error adding note", error);
+      alert("Failed to add note: " + error.message);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
     <AddNoteDiv>
-      <FormTitle>Create New Note</FormTitle>
+      <FormTitle>✨ Magic Note</FormTitle>
       
-      <InputGroup>
-        <Label>Folder</Label>
-        <Select value={folder} onChange={e => setFolder(e.target.value)}>
-          {FOLDERS.map(f => (
-            <option key={f} value={f}>{f}</option>
-          ))}
-        </Select>
-      </InputGroup>
-
       <InputGroup>
         <Label>Title</Label>
         <InputTitle 
@@ -259,7 +241,7 @@ const AddNote = ({ defaultFolder }) => {
       </InputGroup>
       
       <InputGroup>
-        <Label>Content</Label>
+        <Label>Content (AI will read this to categorize!)</Label>
         <BodyTextArea 
           placeholder="Start typing your note here..." 
           value={body} 
@@ -278,10 +260,11 @@ const AddNote = ({ defaultFolder }) => {
 
       <Button 
         onClick={addNote} 
-        disabled={!title.trim() || !body.trim()}
+        disabled={!title.trim() || !body.trim() || isProcessing}
+        isProcessing={isProcessing}
       >
         <FiPlus />
-        Add Note
+        {isProcessing ? "Adding & Categorizing..." : "Auto-Categorize & Add"}
       </Button>
     </AddNoteDiv>
   );

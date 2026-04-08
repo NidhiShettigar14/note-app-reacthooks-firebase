@@ -1,18 +1,41 @@
 import React, { useState } from "react";
 import styled from "styled-components";
-import { FiSearch, FiFolder, FiStar, FiBriefcase, FiBook } from "react-icons/fi";
+import { FiSearch, FiFolder, FiStar, FiBriefcase, FiBook, FiBell } from "react-icons/fi";
 import AddNote from "./AddNote";
 import NoteLists from "./NoteLists";
 import "./App.css";
+
+const AppContainer = styled.div`
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px 60px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 30px;
+`;
+
+const HeaderWrapper = styled.div`
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  padding: 20px 0 0 0;
+  background: transparent;
+`;
 
 const Header = styled.header`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 40px;
+  padding: 16px 32px;
   background-color: var(--surface-color);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid var(--border-color);
+  border-radius: 20px;
+  box-shadow: var(--shadow-md);
+  width: 100%;
   
   @media (max-width: 768px) {
     flex-direction: column;
@@ -22,10 +45,11 @@ const Header = styled.header`
 `;
 
 const Title = styled.h1`
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 26px;
+  font-weight: 800;
   color: var(--text-primary);
   margin: 0;
+  letter-spacing: -0.5px;
 
   span {
     color: var(--accent-color);
@@ -35,21 +59,26 @@ const Title = styled.h1`
 const SearchContainer = styled.div`
   display: flex;
   align-items: center;
-  background: var(--bg-color);
+  background: var(--surface-color-light);
   border: 1px solid var(--border-color);
-  border-radius: 8px;
-  padding: 8px 16px;
-  width: 300px;
-  transition: border-color 0.2s, box-shadow 0.2s;
+  border-radius: 16px;
+  padding: 12px 20px;
+  width: 400px;
+  transition: all 0.2s;
 
   &:focus-within {
     border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px var(--focus-ring);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    background: rgba(255, 255, 255, 0.9);
   }
 
   svg {
     color: var(--text-secondary);
-    margin-right: 8px;
+    margin-right: 12px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 100%;
   }
 `;
 
@@ -58,7 +87,7 @@ const SearchInput = styled.input`
   background: transparent;
   color: var(--text-primary);
   outline: none;
-  font-size: 14px;
+  font-size: 15px;
   width: 100%;
 
   &::placeholder {
@@ -66,80 +95,57 @@ const SearchInput = styled.input`
   }
 `;
 
-const MainContent = styled.main`
+const CategoriesPillBar = styled.div`
   display: flex;
-  padding: 40px;
-  gap: 40px;
-  flex: 1;
-
-  @media (max-width: 768px) {
-    flex-direction: column;
-    padding: 20px;
-  }
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100%;
 `;
 
-const Sidebar = styled.aside`
-  flex: 0 0 320px;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-
-  @media (max-width: 768px) {
-    flex: auto;
-  }
-`;
-
-const FolderNav = styled.nav`
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  background: var(--surface-color);
-  border-radius: 12px;
-  border: 1px solid var(--border-color);
-  padding: 16px;
-  box-shadow: var(--shadow-sm);
-`;
-
-const FolderNavHeader = styled.h3`
-  font-size: 12px;
-  text-transform: uppercase;
-  color: var(--text-secondary);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  margin: 0 0 10px 0;
-  padding-left: 8px;
-`;
-
-const FolderItem = styled.div`
+const CategoryPill = styled.button`
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  gap: 8px;
+  padding: 10px 20px;
+  border-radius: 30px;
+  border: 1px solid ${props => props.active ? "var(--accent-color)" : "var(--border-color)"};
+  background: ${props => props.active ? "var(--accent-color)" : "var(--surface-color)"};
+  color: ${props => props.active ? "#fff" : "var(--text-primary)"};
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
   cursor: pointer;
-  color: ${props => props.active ? "var(--accent-color)" : "var(--text-primary)"};
-  background: ${props => props.active ? "rgba(59, 130, 246, 0.1)" : "transparent"};
-  font-weight: ${props => props.active ? "600" : "400"};
-  transition: all 0.2s;
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: ${props => props.active ? "0 4px 12px rgba(99, 102, 241, 0.3)" : "var(--shadow-sm)"};
 
   &:hover {
-    background: ${props => props.active ? "rgba(59, 130, 246, 0.15)" : "var(--bg-color)"};
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    border-color: var(--accent-color);
   }
 
   svg {
-    color: ${props => props.active ? "var(--accent-color)" : "var(--text-secondary)"};
+    color: ${props => props.active ? "#fff" : "var(--text-secondary)"};
   }
 `;
 
-const NotesContainer = styled.section`
-  flex: 1;
+const AddNoteWrapper = styled.div`
+  width: 100%;
+  max-width: 600px;
+`;
+
+const NotesWrapper = styled.div`
+  width: 100%;
 `;
 
 const FOLDERS = [
   { id: "All Notes", icon: <FiFolder /> },
   { id: "Personal", icon: <FiStar /> },
   { id: "Work", icon: <FiBriefcase /> },
-  { id: "Study", icon: <FiBook /> }
+  { id: "Study", icon: <FiBook /> },
+  { id: "Reminder", icon: <FiBell /> }
 ];
 
 function App() {
@@ -148,43 +154,44 @@ function App() {
 
   return (
     <div className="App">
-      <Header>
-        <Title>Cloud<span>Notes</span>.</Title>
+      <AppContainer>
+        <HeaderWrapper>
+          <Header>
+            <Title>Cloud<span>Notes</span> ✨</Title>
+            
+            <SearchContainer>
+              <FiSearch size={18} />
+              <SearchInput 
+                type="text" 
+                placeholder="Search your smart notes..." 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </SearchContainer>
+          </Header>
+        </HeaderWrapper>
         
-        <SearchContainer>
-          <FiSearch />
-          <SearchInput 
-            type="text" 
-            placeholder="Search notes..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </SearchContainer>
-      </Header>
-      
-      <MainContent>
-        <Sidebar>
-          <FolderNav>
-            <FolderNavHeader>Folders</FolderNavHeader>
-            {FOLDERS.map(folder => (
-              <FolderItem 
-                key={folder.id} 
-                active={activeFolder === folder.id}
-                onClick={() => setActiveFolder(folder.id)}
-              >
-                {folder.icon}
-                {folder.id}
-              </FolderItem>
-            ))}
-          </FolderNav>
-          
+        <CategoriesPillBar>
+          {FOLDERS.map(folder => (
+            <CategoryPill 
+              key={folder.id} 
+              active={activeFolder === folder.id}
+              onClick={() => setActiveFolder(folder.id)}
+            >
+              {folder.icon}
+              {folder.id}
+            </CategoryPill>
+          ))}
+        </CategoriesPillBar>
+        
+        <AddNoteWrapper>
           <AddNote defaultFolder={activeFolder === "All Notes" ? "Personal" : activeFolder} />
-        </Sidebar>
+        </AddNoteWrapper>
         
-        <NotesContainer>
+        <NotesWrapper>
           <NoteLists searchQuery={searchQuery} activeFolder={activeFolder} />
-        </NotesContainer>
-      </MainContent>
+        </NotesWrapper>
+      </AppContainer>
     </div>
   );
 }

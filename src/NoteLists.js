@@ -5,27 +5,38 @@ import { FiTrash2, FiEdit3 } from "react-icons/fi";
 import EditNote from "./components/EditNote";
 
 const ListsGrid = styled.div`
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 20px;
+  column-count: 3;
+  column-gap: 20px;
   width: 100%;
+  
+  @media (max-width: 1100px) {
+    column-count: 2;
+  }
+  @media (max-width: 768px) {
+    column-count: 1;
+  }
 `;
 
 const ListItemDiv = styled.div`
   background: var(--surface-color);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 20px;
+  break-inside: avoid;
   position: relative;
   display: flex;
   flex-direction: column;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s;
   box-shadow: var(--shadow-sm);
   overflow: hidden;
 
   &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+    background: var(--surface-color-light);
   }
   
   &:hover .actions {
@@ -36,29 +47,30 @@ const ListItemDiv = styled.div`
 const ListTitleDiv = styled.h4`
   font-size: 18px;
   color: var(--text-primary);
-  font-weight: 600;
-  margin: 0 0 10px 0;
-  padding-right: 60px; /* Space for actions */
+  font-weight: 700;
+  margin: 0 0 12px 0;
+  padding-right: 64px; 
+  letter-spacing: -0.3px;
 `;
 
 const ListItemDetailDiv = styled.p`
-  font-size: 14px;
+  font-size: 14.5px;
   color: var(--text-secondary);
   line-height: 1.6;
   margin: 0;
   flex-grow: 1;
-  max-height: 150px;
+  max-height: 200px;
   overflow: hidden;
   text-overflow: ellipsis;
   display: -webkit-box;
-  -webkit-line-clamp: 6;
+  -webkit-line-clamp: 8;
   -webkit-box-orient: vertical;
 `;
 
 const NoteImage = styled.img`
-  width: calc(100% + 40px);
-  margin: -20px -20px 15px -20px;
-  max-height: 160px;
+  width: calc(100% + 48px);
+  margin: -24px -24px 16px -24px;
+  max-height: 200px;
   object-fit: cover;
 `;
 
@@ -67,25 +79,41 @@ const MetaDataContainer = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  padding-top: 16px;
 `;
 
 const MetaData = styled.div`
-  font-size: 11px;
+  font-size: 12px;
   color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
   font-weight: 500;
 `;
 
 const FolderBadge = styled.span`
-  background: rgba(59, 130, 246, 0.15);
+  background: rgba(99, 102, 241, 0.15);
   color: var(--accent-hover);
-  padding: 4px 8px;
-  border-radius: 4px;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
   letter-spacing: 0.5px;
+`;
+
+const TagsContainer = styled.div`
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 16px;
+`;
+
+const Tag = styled.span`
+  background: rgba(0, 0, 0, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  color: var(--text-secondary);
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 500;
 `;
 
 const ActionsDiv = styled.div`
@@ -227,6 +255,12 @@ const NoteLists = ({ searchQuery = "", activeFolder = "All Notes" }) => {
                 {list.imageUrl && <NoteImage src={list.imageUrl} alt="Attached" />}
                 <ListTitleDiv>{list.title}</ListTitleDiv>
                 <ListItemDetailDiv>{list.body}</ListItemDetailDiv>
+                
+                {list.tags && list.tags.length > 0 && (
+                  <TagsContainer>
+                    {list.tags.map(tag => <Tag key={tag}>#{tag}</Tag>)}
+                  </TagsContainer>
+                )}
                 
                 <MetaDataContainer>
                   <MetaData>{timeAgoStr}</MetaData>
